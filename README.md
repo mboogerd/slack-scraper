@@ -7,11 +7,11 @@ for authentication.
 
 * Retrieve all channels from a Slack space
 * Retrieve full message history from each channel
+* History retrieval is parallellized per channel
+* History retrieval is implemented as a sequence of calls over a cursor
 
 ### TODO
 
-* Implement retrieving message history using cursors
-* Implement parallelization
 * Implement rate limiting
 * Aggregate interesting elements per channel and participant
 

@@ -1,10 +1,14 @@
 package main
 
+import "fmt"
+
 const (
 	Channels       = "conversations.list"
 	ChannelHistory = "conversations.history"
 	UsersInfo      = "users.info"
 )
+
+const HistoryBatchSize = 1
 
 type ChannelInfo struct {
 	Id          string
@@ -33,8 +37,9 @@ type Message struct {
 }
 
 type ChannelHistoryResponse struct {
-	Ok       bool
-	Messages []Message
+	Ok                bool
+	Messages          []Message
+	Response_metadata ResponseMetadata
 }
 
 type ProfileData struct {
@@ -64,12 +69,24 @@ type UserInfoResponse struct {
 	User UserInfo
 }
 
+type ResponseMetadata struct {
+	Next_cursor string
+}
+
 func HttpGetChannels() string {
 	return SlackApi + Channels + "?token=" + token
 }
 
 func HttpGetChannelHistory(channel string) string {
-	return SlackApi + ChannelHistory + "?token=" + token + "&channel=" + channel
+	return SlackApi + ChannelHistory + "?token=" + token + "&channel=" + channel + "&limit=" + fmt.Sprint(HistoryBatchSize)
+}
+
+func HttpGetChannelHistoryCursor(channel string, cursor string) string {
+	var baseUrl = HttpGetChannelHistory(channel)
+	if cursor == "" {
+		return baseUrl
+	}
+	return baseUrl + "&cursor=" + cursor
 }
 
 func HttpGetUserIdentity(user string) string {

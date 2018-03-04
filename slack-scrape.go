@@ -55,7 +55,7 @@ func main() {
 	}
 	channelHistoriesWaitGroup.Wait()
 
-	fmt.Printf("HISTORIES %v\n", channelSummaries)
+	fmt.Printf("HISTORIES %v\n", &channelSummaries)
 }
 
 func SummarizeChannel(channel ChannelInfo, wg *sync.WaitGroup, summary *AtomicChannelSummaries) {
@@ -64,11 +64,11 @@ func SummarizeChannel(channel ChannelInfo, wg *sync.WaitGroup, summary *AtomicCh
 		// Decrement the counter when the goroutine completes.
 		defer wg.Done()
 
-		messages, err := GetChannelHistory(channel.Id)
-		if err != nil {
-			log.Printf("Failed to retrieve messages for channel %v due to %v\n", channel.Name, err)
+		for elem := range TraverseChannelHistory(channel.Id) {
+			if elem.Error != nil {
+				log.Fatalf("Failed to retrieve messages for channel %v due to %v\n", channel.Name, elem.Error)
+			}
+			summary.UpdateAtomic(channel.Id, func(prev []Message) []Message { return append(prev, elem.Fragment...) })
 		}
-
-		summary.UpdateAtomic(channel.Id, func(_ []Message) []Message { return messages })
 	}()
 }

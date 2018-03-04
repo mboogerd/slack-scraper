@@ -46,13 +46,32 @@ func GetChannels() ([]ChannelInfo, error) {
 	return decoded.Channels, err
 }
 
-func GetChannelHistory(channel string) ([]Message, error) {
+func GetChannelHistory(channel string, cursor string) (ChannelHistoryResponse, error) {
 	var decoded ChannelHistoryResponse
-	err := HttpGetJsonBody(HttpGetChannelHistory(channel), &decoded)
+	err := HttpGetJsonBody(HttpGetChannelHistoryCursor(channel, cursor), &decoded)
 	if err != nil {
 		log.Printf("Error executing GetChannelHistory(%v): %v\n", channel, err)
 	}
-	return decoded.Messages, err
+	return decoded, err
+}
+
+type PartialMessages struct {
+	Fragment []Message
+	Error    error
+}
+
+func TraverseChannelHistory(channel string) <-chan PartialMessages {
+	rc := make(chan PartialMessages)
+	go func() {
+		response, err := GetChannelHistory(channel, "")
+		for response.Response_metadata.Next_cursor != "" {
+			rc <- PartialMessages{Fragment: response.Messages, Error: err}
+			response, err = GetChannelHistory(channel, response.Response_metadata.Next_cursor)
+		}
+		rc <- PartialMessages{Fragment: response.Messages, Error: err}
+		close(rc)
+	}()
+	return rc
 }
 
 func GetUserInfo(user string) (UserInfo, error) {

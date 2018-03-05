@@ -3,22 +3,67 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"sync"
 )
 
-// TODO: we could explore
+type ChannelMember struct {
+	ChannelId string
+	MemberId  string
+}
+
+type ChannelMemberInfo struct {
+	Creator      bool
+	JoinTime     float64
+	MessageCount int
+	Left         bool
+}
+
+func NewChannelMemberInfo() ChannelMemberInfo {
+	return ChannelMemberInfo{
+		Creator:      false,
+		JoinTime:     math.MaxFloat64,
+		MessageCount: 0,
+		Left:         false,
+	}
+}
+
+func (msg Message) Summarize() ChannelMemberInfo {
+	return ChannelMemberInfo{
+		Creator:      false,
+		JoinTime:     math.MaxFloat64,
+		MessageCount: 1,
+		Left:         false,
+	}
+}
+
+func (cmi ChannelMemberInfo) Merge(other ChannelMemberInfo) ChannelMemberInfo {
+	return ChannelMemberInfo{
+		Creator:      cmi.Creator || other.Creator,
+		JoinTime:     math.Min(cmi.JoinTime, other.JoinTime),
+		MessageCount: cmi.MessageCount + other.MessageCount,
+		Left:         cmi.Left || other.Left,
+	}
+}
+
 type AtomicChannelSummaries struct {
-	v   map[string][]Message
+	v   map[ChannelMember]ChannelMemberInfo
 	mux sync.Mutex
 }
 
-func (c *AtomicChannelSummaries) UpdateAtomic(key string, f func([]Message) []Message) {
+func (c *AtomicChannelSummaries) UpdateAtomic(key ChannelMember, f func(ChannelMemberInfo) ChannelMemberInfo) {
 	c.mux.Lock()
 	c.v[key] = f(c.v[key])
 	c.mux.Unlock()
 }
 
-var channelSummaries = AtomicChannelSummaries{v: make(map[string][]Message)}
+func (c *AtomicChannelSummaries) MergeAtomic(m map[ChannelMember]ChannelMemberInfo) {
+	for k, v := range m {
+		c.UpdateAtomic(k, func(cmi ChannelMemberInfo) ChannelMemberInfo { return cmi.Merge(v) })
+	}
+}
+
+var channelSummaries = AtomicChannelSummaries{v: make(map[ChannelMember]ChannelMemberInfo)}
 
 func main() {
 	channels, err := GetChannels()
@@ -68,7 +113,20 @@ func SummarizeChannel(channel ChannelInfo, wg *sync.WaitGroup, summary *AtomicCh
 			if elem.Error != nil {
 				log.Fatalf("Failed to retrieve messages for channel %v due to %v\n", channel.Name, elem.Error)
 			}
-			summary.UpdateAtomic(channel.Id, func(prev []Message) []Message { return append(prev, elem.Fragment...) })
+			summary.MergeAtomic(SummarizePartialMessages(channel.Id, elem.Fragment))
 		}
 	}()
+}
+
+func SummarizePartialMessages(channelId string, msgs []Message) map[ChannelMember]ChannelMemberInfo {
+	result := make(map[ChannelMember]ChannelMemberInfo)
+	for _, msg := range msgs {
+		cm := ChannelMember{channelId, msg.User}
+		cmi, err := result[cm]
+		if err == false {
+			cmi = NewChannelMemberInfo()
+		}
+		result[cm] = cmi.Merge(msg.Summarize())
+	}
+	return result
 }

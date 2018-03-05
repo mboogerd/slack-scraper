@@ -9,11 +9,11 @@ for authentication.
 * Retrieve full message history from each channel
 * History retrieval is parallellized per channel
 * History retrieval is implemented as a sequence of calls over a cursor
+* Aggregate interesting elements per channel and participant
 
 ### TODO
 
 * Implement rate limiting
-* Aggregate interesting elements per channel and participant
 
 ## Configuration
 

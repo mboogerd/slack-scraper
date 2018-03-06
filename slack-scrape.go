@@ -112,24 +112,23 @@ var channelSummaries = AtomicChannelSummaries{v: make(map[ChannelMember]ChannelM
 func main() {
 	rateChannel := setupBurstRateLimiter(rateLimit, burstLimit)
 
-	// Retrieve the channels
-	channels, err := GetChannels()
-
-	if err != nil {
-		log.Fatalln("Error retrieving channels", err)
-	}
-
 	var channelHistoriesWaitGroup sync.WaitGroup
-	for _, channel := range channels {
-		// Don't overwhelm the server
-		<-rateChannel
-		user, err := GetUserInfo(channel.Creator)
-		if err != nil {
-			log.Printf("Failed to retrieve creator %v for channel %v due to %v\n", channel.Creator, channel.Name, err)
+	for channelsFragment := range TraverseChannels() {
+		if channelsFragment.Error != nil {
+			log.Fatalln("Error retrieving channels", channelsFragment.Error)
 		}
-		fmt.Printf("CHANNEL [%v]: %v. Created by: %v\n", channel.Id, channel.Name, user.Profile.Real_name_normalized)
 
-		SummarizeChannel(channel, &channelHistoriesWaitGroup, &channelSummaries, rateChannel)
+		for _, channel := range channelsFragment.Fragment {
+			// Don't overwhelm the server
+			<-rateChannel
+			user, err := GetUserInfo(channel.Creator)
+			if err != nil {
+				log.Printf("Failed to retrieve creator %v for channel %v due to %v\n", channel.Creator, channel.Name, err)
+			}
+			fmt.Printf("CHANNEL [%v]: %v. Created by: %v\n", channel.Id, channel.Name, user.Profile.Real_name_normalized)
+
+			SummarizeChannel(channel, &channelHistoriesWaitGroup, &channelSummaries, rateChannel)
+		}
 	}
 	channelHistoriesWaitGroup.Wait()
 

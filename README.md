@@ -10,10 +10,11 @@ for authentication.
 * History retrieval is parallellized per channel
 * History retrieval is implemented as a sequence of calls over a cursor
 * Aggregate interesting elements per channel and participant
+* Queries are rate limited
 
 ### TODO
 
-* Implement rate limiting
+* Obtain user info for channel creators and for all users posting messages
 
 ## Configuration
 

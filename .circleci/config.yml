@@ -3,11 +3,15 @@ jobs:
   test:
     docker:
       - image: circleci/golang:1.9.4
+    working_directory: /go/src/github.com/mboogerd/slack-scraper
     steps:
+      - checkout
       - run: go test
   deploy:
     docker:
       - image: circleci/golang:1.9.4
+    branches:
+      only: master
     steps:
       # Write the circleci GCP service account key to disk
       - run: echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json

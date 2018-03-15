@@ -10,7 +10,6 @@ jobs:
   deploy:
     docker:
       - image: google/cloud-sdk
-    working_directory: /go/src/github.com/mboogerd/slack-scraper
     steps:
       - checkout
       # Write the circleci GCP service account key to disk
@@ -20,7 +19,7 @@ jobs:
       # Set the project to the one configured in the environment
       - run: gcloud config set project $GCLOUD_PROJECT
       # Finally, run the deploy
-      - run: gcloud app deploy app.yaml --no-promote --no-stop-previous-version
+      - run: gcloud app deploy app.yaml --no-promote --no-stop-previous-version --log-http --verbosity=debug
 workflows:
   version: 2
   test-and-deploy:

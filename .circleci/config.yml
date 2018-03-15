@@ -10,6 +10,7 @@ jobs:
   deploy:
     docker:
       - image: google/cloud-sdk
+    working_directory: /go/src/github.com/mboogerd/slack-scraper
     steps:
       - checkout
       # Write the circleci GCP service account key to disk

@@ -13,3 +13,10 @@ resources:
   cpu: 1
   memory_gb: 0.5
   disk_size_gb: 10
+
+env_variables:
+  SlackAPI: "https://demograph.slack.com/api/"
+  SlackToken: "fake-token-todo-replace-with-bucket"
+  
+# TODO: Add health checks as per:
+# https://cloud.google.com/appengine/docs/flexible/go/configuring-your-app-with-app-yaml#health_checks

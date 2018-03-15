@@ -112,8 +112,8 @@ var channelSummaries = AtomicChannelSummaries{v: make(map[ChannelMember]ChannelM
 
 func main() {
 	session := SlackSession{
-		API:   os.Args[1],
-		Token: os.Args[2],
+		API:   os.Getenv("SlackAPI"),
+		Token: os.Getenv("SlackToken"),
 	}
 
 	rateChannel := setupBurstRateLimiter(rateLimit, burstLimit)

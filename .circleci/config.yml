@@ -9,7 +9,7 @@ jobs:
       - run: go test
   deploy:
     docker:
-      - image: circleci/golang:1.9.4
+      - image: google/cloud-sdk
     steps:
       # Write the circleci GCP service account key to disk
       - run: echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json

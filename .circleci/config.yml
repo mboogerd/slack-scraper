@@ -1,0 +1,65 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:2.4.1
+    steps:
+      - checkout
+      - run: echo "A first hello"
+
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+# version: 2
+# jobs:
+#   build:
+#     docker:
+#       # specify the version
+#       - image: circleci/golang:1.9
+      
+#       # Specify service dependencies here if necessary
+#       # CircleCI maintains a library of pre-built images
+#       # documented at https://circleci.com/docs/2.0/circleci-images/
+#       # - image: circleci/postgres:9.4
+
+#     #### TEMPLATE_NOTE: go expects specific checkout path representing url
+#     #### expecting it in the form of
+#     ####   /go/src/github.com/circleci/go-tool
+#     ####   /go/src/bitbucket.org/circleci/go-tool
+#     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+#     steps:
+#       - checkout
+
+#       # specify any bash command here prefixed with `run: `
+#       - run: go get -v -t -d ./...
+#       - run: go test -v ./...
+
+# dependencies:
+#   pre:
+#     # Download App Engine SDK
+#     # This is not necessary to deploy, its only necessary  to run local tests importing the App Engine SDK
+#     # - curl -o $HOME/google_appengine_1.9.40.zip https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.40.zip
+#     # - unzip -q -d $HOME $HOME/google_appengine_1.9.40.zip
+#     # Retrieve our secrets from the CircleCI environment
+#     - echo $CLIENT_SECRET | base64 --decode > ${HOME}/client-secret.json
+#     - sed  s/YOUR-API-KEY/$API_KEY/ api_key.py.sample > api_key.py
+#     # Make sure gcloud is up to date
+#     - gcloud --quiet components update app
+#     # authenticate gcloud
+#     - gcloud auth activate-service-account --key-file ${HOME}/client-secret.json
+#     # Replace <your-project-id>
+#     - gcloud config set project $GCLOUD_PROJECT
+
+# test:
+#   post:
+#     # clear up results from running tests before deploying
+#     - git reset --hard; git clean -d -x -f
+
+# deployment:
+#     staging:
+#         branch: master
+#         commands:
+#         # deploy to AppEngine
+#         - gcloud -q preview app deploy app.yaml --promote --version=1
+#         # Run our E2E Test
+#         - python e2e_test.py

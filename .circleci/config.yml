@@ -10,8 +10,6 @@ jobs:
   deploy:
     docker:
       - image: circleci/golang:1.9.4
-    branches:
-      only: master
     steps:
       # Write the circleci GCP service account key to disk
       - run: echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
@@ -29,6 +27,10 @@ workflows:
     jobs:
       - test
       - deploy:
+          filters:
+            branches:
+              only:
+                - master
           requires:
             - test
       # - healthcheck:

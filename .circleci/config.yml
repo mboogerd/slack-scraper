@@ -11,6 +11,7 @@ jobs:
     docker:
       - image: google/cloud-sdk
     steps:
+      - checkout
       # Write the circleci GCP service account key to disk
       - run: echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
       # Authenticate this GCloud client as circleci service account

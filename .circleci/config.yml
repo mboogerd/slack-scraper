@@ -5,7 +5,7 @@ jobs:
       - image: circleci/ruby:2.4.1
     steps:
       - checkout
-      - run: echo "A first hello"
+      - notacommand
 
 # Golang CircleCI 2.0 configuration file
 #

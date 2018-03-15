@@ -18,7 +18,7 @@ jobs:
       # Set the project to the one configured in the environment
       - run: gcloud config set project $GCLOUD_PROJECT
       # Finally, run the deploy
-      - run: gcloud app deploy app.yaml --no-promote -no-stop-previous-version
+      - run: gcloud app deploy app.yaml --no-promote --no-stop-previous-version
 workflows:
   version: 2
   test-and-deploy:

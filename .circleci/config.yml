@@ -17,9 +17,9 @@ jobs:
       - run: gcloud -q preview app deploy app.yaml --no-promote -no-stop-previous-version
 workflows:
   version: 2
-  test_and_deploy:
+  test-and-deploy:
     jobs:
-      - test:
+      - test
       - deploy:
           requires:
             - test

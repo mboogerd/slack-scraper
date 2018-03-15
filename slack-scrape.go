@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"sync"
 	"time"
 )
@@ -77,13 +78,13 @@ func (c *AtomicChannelSummaries) MergeAtomic(m map[ChannelMember]ChannelMemberIn
 }
 
 // SummarizeChannel traverses the history of a channel and updates the given AtomicChannelSummaries accordingly
-func SummarizeChannel(channel ChannelInfo, wg *sync.WaitGroup, summary *AtomicChannelSummaries, rateChannel <-chan time.Time) {
+func SummarizeChannel(session SlackSession, channel ChannelInfo, wg *sync.WaitGroup, summary *AtomicChannelSummaries, rateChannel <-chan time.Time) {
 	wg.Add(1)
 	go func() {
 		// Decrement the counter when the goroutine completes.
 		defer wg.Done()
 
-		for elem := range TraverseChannelHistory(channel.Id) {
+		for elem := range TraverseChannelHistory(session, channel.Id) {
 			<-rateChannel
 			if elem.Error != nil {
 				log.Fatalf("Failed to retrieve messages for channel %v due to %v\n", channel.Name, elem.Error)
@@ -110,10 +111,15 @@ func SummarizeMessages(channelID string, msgs []Message) map[ChannelMember]Chann
 var channelSummaries = AtomicChannelSummaries{v: make(map[ChannelMember]ChannelMemberInfo)}
 
 func main() {
+	session := SlackSession{
+		API:   os.Args[1],
+		Token: os.Args[2],
+	}
+
 	rateChannel := setupBurstRateLimiter(rateLimit, burstLimit)
 
 	var channelHistoriesWaitGroup sync.WaitGroup
-	for channelsFragment := range TraverseChannels() {
+	for channelsFragment := range TraverseChannels(session) {
 		if channelsFragment.Error != nil {
 			log.Fatalln("Error retrieving channels", channelsFragment.Error)
 		}
@@ -121,13 +127,13 @@ func main() {
 		for _, channel := range channelsFragment.Fragment {
 			// Don't overwhelm the server
 			<-rateChannel
-			user, err := GetUserInfo(channel.Creator)
+			user, err := GetUserInfo(session, channel.Creator)
 			if err != nil {
 				log.Printf("Failed to retrieve creator %v for channel %v due to %v\n", channel.Creator, channel.Name, err)
 			}
 			fmt.Printf("CHANNEL [%v]: %v. Created by: %v\n", channel.Id, channel.Name, user.Profile.Real_name_normalized)
 
-			SummarizeChannel(channel, &channelHistoriesWaitGroup, &channelSummaries, rateChannel)
+			SummarizeChannel(session, channel, &channelHistoriesWaitGroup, &channelSummaries, rateChannel)
 		}
 	}
 	channelHistoriesWaitGroup.Wait()

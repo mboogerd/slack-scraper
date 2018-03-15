@@ -50,9 +50,9 @@ func HTTPGetJSONBody(httpGet string, response interface{}) error {
 }
 
 // GetChannels invokes the Slack conversation.list API and returns the result or an error
-func GetChannels() ([]ChannelInfo, error) {
+func GetChannels(session SlackSession) ([]ChannelInfo, error) {
 	var decoded ChannelsResponse
-	err := HTTPGetJSONBody(ChannelsAPI(), &decoded)
+	err := HTTPGetJSONBody(ChannelsAPI(session), &decoded)
 	if err != nil {
 		log.Println("Error executing GetChannels", err)
 	}
@@ -60,17 +60,17 @@ func GetChannels() ([]ChannelInfo, error) {
 }
 
 // TraverseChannels traverses the Slack conversation.list API through a cursor and returns the result as channel
-func TraverseChannels() <-chan PartialChannels {
+func TraverseChannels(session SlackSession) <-chan PartialChannels {
 	rc := make(chan PartialChannels)
 	go func() {
 		var decoded ChannelsResponse
-		err := HTTPGetJSONBody(CursoredChannelsAPI(""), &decoded)
+		err := HTTPGetJSONBody(CursoredChannelsAPI(session, ""), &decoded)
 		if err != nil {
 			log.Println("Error executing GetChannels", err)
 		}
 		for decoded.Response_metadata.Next_cursor != "" {
 			rc <- PartialChannels{Fragment: decoded.Channels, Error: err}
-			err = HTTPGetJSONBody(CursoredChannelsAPI(decoded.Response_metadata.Next_cursor), &decoded)
+			err = HTTPGetJSONBody(CursoredChannelsAPI(session, decoded.Response_metadata.Next_cursor), &decoded)
 		}
 		rc <- PartialChannels{Fragment: decoded.Channels, Error: err}
 		close(rc)
@@ -79,9 +79,9 @@ func TraverseChannels() <-chan PartialChannels {
 }
 
 // GetChannelHistory invokes the Slack conversation.history API and returns the result or an error
-func GetChannelHistory(channel string, cursor string) (ChannelHistoryResponse, error) {
+func GetChannelHistory(session SlackSession, channel string, cursor string) (ChannelHistoryResponse, error) {
 	var decoded ChannelHistoryResponse
-	err := HTTPGetJSONBody(CursoredChannelHistoryAPI(channel, cursor), &decoded)
+	err := HTTPGetJSONBody(CursoredChannelHistoryAPI(session, channel, cursor), &decoded)
 	if err != nil {
 		log.Printf("Error executing GetChannelHistory(%v): %v\n", channel, err)
 	}
@@ -89,13 +89,13 @@ func GetChannelHistory(channel string, cursor string) (ChannelHistoryResponse, e
 }
 
 // TraverseChannelHistory traverses the Slack conversation.history API through a cursor and returns the result as channel
-func TraverseChannelHistory(channel string) <-chan PartialMessages {
+func TraverseChannelHistory(session SlackSession, channel string) <-chan PartialMessages {
 	rc := make(chan PartialMessages)
 	go func() {
-		response, err := GetChannelHistory(channel, "")
+		response, err := GetChannelHistory(session, channel, "")
 		for response.Response_metadata.Next_cursor != "" {
 			rc <- PartialMessages{Fragment: response.Messages, Error: err}
-			response, err = GetChannelHistory(channel, response.Response_metadata.Next_cursor)
+			response, err = GetChannelHistory(session, channel, response.Response_metadata.Next_cursor)
 		}
 		rc <- PartialMessages{Fragment: response.Messages, Error: err}
 		close(rc)
@@ -104,9 +104,9 @@ func TraverseChannelHistory(channel string) <-chan PartialMessages {
 }
 
 // GetUserInfo obtains the UserInfo data for a given `user`
-func GetUserInfo(user string) (UserInfo, error) {
+func GetUserInfo(session SlackSession, user string) (UserInfo, error) {
 	var decoded UserInfoResponse
-	err := HTTPGetJSONBody(UserIdentityAPI(user), &decoded)
+	err := HTTPGetJSONBody(UserIdentityAPI(session, user), &decoded)
 	if err != nil {
 		log.Printf("Error executing HttpGetUserIdentity(%v): %v\n", user, err)
 	}

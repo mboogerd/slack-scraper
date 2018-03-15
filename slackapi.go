@@ -14,6 +14,11 @@ const (
 // LimitOfCursorTraversal configures how many elements are retrieved in once when using a cursor-traversal of a Slack API
 const LimitOfCursorTraversal = 1
 
+type SlackSession struct {
+	API   string
+	Token string
+}
+
 // ChannelInfo contains the principal information in a Slack channel
 type ChannelInfo struct {
 	Id          string
@@ -87,13 +92,13 @@ type ResponseMetadata struct {
 }
 
 // ChannelsAPI returns the URL to retrieve all the channels in your workspace
-func ChannelsAPI() string {
-	return SlackAPI + Channels + "?token=" + token
+func ChannelsAPI(session SlackSession) string {
+	return session.API + Channels + "?token=" + session.Token
 }
 
 // CursoredChannelsAPI returns the URL to do a cursored traversal of the channels in your workspace
-func CursoredChannelsAPI(cursor string) string {
-	var baseURL = ChannelsAPI()
+func CursoredChannelsAPI(session SlackSession, cursor string) string {
+	var baseURL = ChannelsAPI(session)
 	if cursor == "" {
 		return baseURL
 	}
@@ -101,13 +106,13 @@ func CursoredChannelsAPI(cursor string) string {
 }
 
 // ChannelHistoryAPI returns the URL to retrieve the messages of a given channel
-func ChannelHistoryAPI(channel string) string {
-	return SlackAPI + ChannelHistory + "?token=" + token + "&channel=" + channel + "&limit=" + fmt.Sprint(LimitOfCursorTraversal)
+func ChannelHistoryAPI(session SlackSession, channel string) string {
+	return session.API + ChannelHistory + "?token=" + session.Token + "&channel=" + channel + "&limit=" + fmt.Sprint(LimitOfCursorTraversal)
 }
 
 // HttpGetChannelHistoryCursor returns the URL to do a cursored traversal of the messages of a given channel
-func CursoredChannelHistoryAPI(channel string, cursor string) string {
-	var baseURL = ChannelHistoryAPI(channel)
+func CursoredChannelHistoryAPI(session SlackSession, channel string, cursor string) string {
+	var baseURL = ChannelHistoryAPI(session, channel)
 	if cursor == "" {
 		return baseURL
 	}
@@ -115,6 +120,6 @@ func CursoredChannelHistoryAPI(channel string, cursor string) string {
 }
 
 // UserIdentityAPI returns the URL to use for the users.info API
-func UserIdentityAPI(user string) string {
-	return SlackAPI + UsersInfo + "?token=" + token + "&user=" + user
+func UserIdentityAPI(session SlackSession, user string) string {
+	return session.API + UsersInfo + "?token=" + session.Token + "&user=" + user
 }

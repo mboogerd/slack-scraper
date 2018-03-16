@@ -108,14 +108,19 @@ func SummarizeMessages(channelID string, msgs []Message) map[ChannelMember]Chann
 	return result
 }
 
-var channelSummaries = AtomicChannelSummaries{v: make(map[ChannelMember]ChannelMemberInfo)}
-
 func main() {
 	session := SlackSession{
 		API:   os.Getenv("SlackAPI"),
 		Token: os.Getenv("SlackToken"),
 	}
 
+	var channelSummaries = AtomicChannelSummaries{v: make(map[ChannelMember]ChannelMemberInfo)}
+
+	go startScraper(session, &channelSummaries)
+	setupLivenessHealthChecks(&channelSummaries)
+}
+
+func startScraper(session SlackSession, channelSummaries *AtomicChannelSummaries) {
 	rateChannel := setupBurstRateLimiter(rateLimit, burstLimit)
 
 	var channelHistoriesWaitGroup sync.WaitGroup
@@ -133,12 +138,10 @@ func main() {
 			}
 			fmt.Printf("CHANNEL [%v]: %v. Created by: %v\n", channel.Id, channel.Name, user.Profile.Real_name_normalized)
 
-			SummarizeChannel(session, channel, &channelHistoriesWaitGroup, &channelSummaries, rateChannel)
+			SummarizeChannel(session, channel, &channelHistoriesWaitGroup, channelSummaries, rateChannel)
 		}
 	}
 	channelHistoriesWaitGroup.Wait()
-
-	fmt.Printf("HISTORIES %v\n", &channelSummaries)
 }
 
 func setupBurstRateLimiter(interval time.Duration, burstLimit int) <-chan time.Time {

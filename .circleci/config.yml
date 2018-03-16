@@ -21,7 +21,7 @@ jobs:
       # Finally, run the deploy
       - run: gcloud app deploy app.yaml --no-promote --no-stop-previous-version --version=$CIRCLE_BUILD_NUM
       # Check whether live
-      - run: gcloud app services set-traffic $GCLOUD_PROJECT --splits $CIRCLE_BUILD_NUM=1
+      - run: gcloud app services set-traffic default --splits $CIRCLE_BUILD_NUM=1
 workflows:
   version: 2
   test-and-deploy:

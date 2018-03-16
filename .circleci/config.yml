@@ -19,7 +19,9 @@ jobs:
       # Set the project to the one configured in the environment
       - run: gcloud config set project $GCLOUD_PROJECT
       # Finally, run the deploy
-      - run: gcloud app deploy app.yaml --no-promote --no-stop-previous-version --log-http --verbosity=debug
+      - run: gcloud app deploy app.yaml --no-promote --no-stop-previous-version --version=$CIRCLE_BUILD_NUM
+      # Check whether live
+      - run: gcloud app services set-traffic $GCLOUD_PROJECT --splits $CIRCLE_BUILD_NUM=1
 workflows:
   version: 2
   test-and-deploy:

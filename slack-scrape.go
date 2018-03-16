@@ -117,7 +117,7 @@ func main() {
 	var channelSummaries = AtomicChannelSummaries{v: make(map[ChannelMember]ChannelMemberInfo)}
 
 	go startScraper(session, &channelSummaries)
-	setupLivenessHealthChecks(&channelSummaries)
+	setupHealthChecks(&channelSummaries)
 }
 
 func startScraper(session SlackSession, channelSummaries *AtomicChannelSummaries) {

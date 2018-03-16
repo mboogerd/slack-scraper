@@ -6,17 +6,17 @@ import (
 	"net/http"
 )
 
-func livenesscheckRoute(w http.ResponseWriter, r *http.Request) {
+func livenessRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "LIVE")
 }
 
-func healthcheckRoute(w http.ResponseWriter, r *http.Request) {
+func readinessRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "HEALTHY")
 }
 
-func setupLivenessHealthChecks(channelSummaries *AtomicChannelSummaries) {
-	http.HandleFunc("/livenesscheck", livenesscheckRoute)
-	http.HandleFunc("/healthcheck", healthcheckRoute)
+func setupHealthChecks(channelSummaries *AtomicChannelSummaries) {
+	http.HandleFunc("/livenesscheck", livenessRoute)
+	http.HandleFunc("/readinesscheck", readinessRoute)
 	http.HandleFunc("/state", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, channelSummaries)
 	})

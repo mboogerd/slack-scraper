@@ -21,7 +21,7 @@ jobs:
       # Finally, run the deploy
       - run: gcloud app deploy app.yaml --no-promote --no-stop-previous-version --version=$CIRCLE_BUILD_NUM
       # Check whether ready for traffic
-      - run: [ 200 -eq $(curl --write-out "%{http_code}\n" --silent --output /dev/null "https':'//$CIRCLE_BUILD_NUM-dot-slack-scraper.appspot.com/readinesscheck") ]
+      - run: '[ 200 -eq $(curl --write-out "%{http_code}\n" --silent --output /dev/null "https://$CIRCLE_BUILD_NUM-dot-slack-scraper.appspot.com/readinesscheck") ]'
       # Migrate traffic to new instance
       - run: gcloud app services set-traffic default --splits $CIRCLE_BUILD_NUM=1
 workflows:

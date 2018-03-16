@@ -11,7 +11,8 @@ func livenessRoute(w http.ResponseWriter, r *http.Request) {
 }
 
 func readinessRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "READY")
+	// fmt.Fprint(w, "READY")
+	w.WriteHeader(400)
 }
 
 func setupHealthChecks(channelSummaries *AtomicChannelSummaries) {
